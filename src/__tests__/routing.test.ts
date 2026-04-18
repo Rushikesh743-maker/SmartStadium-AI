@@ -3,7 +3,12 @@ import { findPath } from "../lib/stadium-data";
 
 describe("Routing System", () => {
   it("should return a path", () => {
-    const path = findPath("A", "B");
+    const mockZones = [
+      { id: "A", connections: ["B"] },
+      { id: "B", connections: ["A"] }
+    ];
+
+    const path = findPath(mockZones, "A", "B", false);
     expect(path).toBeDefined();
   });
 });
