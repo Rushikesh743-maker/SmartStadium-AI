@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateAlerts } from "../utils/stadium-data";
+import { generateAlerts } from "../lib/stadium-data";
 
 describe("Alerts System", () => {
   it("should return an array", () => {
