@@ -32,10 +32,14 @@ export default defineConfig(({ mode }) => ({
     ],
   },
 
-  // ✅ ADD THIS BLOCK (IMPORTANT)
-  test: {
-    globals: true,
-    environment: "jsdom",
-    setupFiles: "./src/test/setup.ts",
-  },
+
+test: {
+  globals: true,
+  environment: "jsdom",
+  setupFiles: "./src/test/setup.ts",
+  include: [
+    "src/**/*.{test,spec}.{ts,tsx}",
+    "src/**/__tests__/**/*.{ts,tsx}"
+  ],
+},
 }));
