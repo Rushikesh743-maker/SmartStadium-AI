@@ -1,8 +1,11 @@
 import { Alert } from "@/lib/stadium-data";
 import { AlertTriangle, Info, ShieldAlert } from "lucide-react";
+import { useEffect, useState } from "react";
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 
 interface AlertsPanelProps {
-  alerts: Alert[];
+  alerts?: Alert[];
 }
 
 const severityConfig = {
@@ -12,19 +15,49 @@ const severityConfig = {
 };
 
 export default function AlertsPanel({ alerts }: AlertsPanelProps) {
+
+  // 🔥 NEW: live Firebase alerts state
+  const [liveAlerts, setLiveAlerts] = useState<Alert[]>(alerts || []);
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, "alerts"), (snapshot) => {
+      const data: Alert[] = snapshot.docs.map(doc => ({
+        ...(doc.data() as Alert),
+        id: doc.id,
+      }));
+
+      // sort newest first
+      data.sort((a, b) => b.timestamp - a.timestamp);
+
+      setLiveAlerts(data.slice(0, 5));
+    });
+
+    return () => unsub();
+  }, []);
+
   return (
     <div className="glass rounded-lg p-4 space-y-2 animate-fade-in">
+
       <h3 className="font-semibold text-sm flex items-center gap-2">
-        <AlertTriangle className="w-4 h-4 text-warning" /> Live Alerts
+        <AlertTriangle className="w-4 h-4 text-warning" />
+        Live Alerts
       </h3>
-      {alerts.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No alerts right now ✓</p>
+
+      {/* empty state */}
+      {liveAlerts.length === 0 ? (
+        <p className="text-xs text-muted-foreground">
+          🔵 System stable — no active alerts
+        </p>
       ) : (
-        alerts.map(alert => {
+        liveAlerts.map(alert => {
           const cfg = severityConfig[alert.severity];
           const Icon = cfg.icon;
+
           return (
-            <div key={alert.id} className={`flex items-start gap-2 rounded-md border px-3 py-2 text-xs ${cfg.classes}`}>
+            <div
+              key={alert.id}
+              className={`flex items-start gap-2 rounded-md border px-3 py-2 text-xs ${cfg.classes}`}
+            >
               <Icon className="w-3.5 h-3.5 mt-0.5 shrink-0" />
               <span>{alert.message}</span>
             </div>
