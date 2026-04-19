@@ -5,7 +5,7 @@ An AI-powered real-time stadium management system that simulates crowd movement,
 ---
 
 ## 🚀 Live Demo
-smart-stadium-ai-psi.vercel.app
+https://smart-stadium-ai-psi.vercel.app/
 
 ---
 
