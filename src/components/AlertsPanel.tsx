@@ -29,20 +29,25 @@ export default function AlertsPanel({ alerts }: AlertsPanelProps) {
             .map((doc) => {
               const d = doc.data();
 
-              // ✅ basic validation (security upgrade)
-              if (!d?.message || !d?.severity || !d?.timestamp) return null;
+              // 🔐 SECURITY: strict validation
+              if (
+                typeof d?.message !== "string" ||
+                typeof d?.severity !== "string" ||
+                typeof d?.timestamp !== "number"
+              ) {
+                return null;
+              }
 
               return {
                 id: doc.id,
-                message: String(d.message),
-                severity: d.severity,
-                timestamp: Number(d.timestamp),
-              } as Alert;
+                message: d.message,
+                severity: d.severity as Alert["severity"],
+                timestamp: d.timestamp,
+              };
             })
             .filter(Boolean) as Alert[];
 
           data.sort((a, b) => b.timestamp - a.timestamp);
-
           setLiveAlerts(data.slice(0, 5));
         } catch (err) {
           console.error("Alerts parsing error:", err);
@@ -57,35 +62,39 @@ export default function AlertsPanel({ alerts }: AlertsPanelProps) {
   }, []);
 
   return (
-    <div
+    <section
       className="glass rounded-lg p-4 space-y-2 animate-fade-in"
       aria-live="polite"
+      aria-label="Live system alerts"
     >
       <h3 className="font-semibold text-sm flex items-center gap-2">
-        <AlertTriangle className="w-4 h-4 text-warning" />
+        <AlertTriangle className="w-4 h-4 text-warning" aria-hidden="true" />
         Live Alerts
       </h3>
 
       {liveAlerts.length === 0 ? (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground" role="status">
           🔵 System stable — no active alerts
         </p>
       ) : (
-        liveAlerts.map((alert) => {
-          const cfg = severityConfig[alert.severity] || severityConfig.info;
-          const Icon = cfg.icon;
+        <ul className="space-y-2">
+          {liveAlerts.map((alert) => {
+            const cfg = severityConfig[alert.severity] || severityConfig.info;
+            const Icon = cfg.icon;
 
-          return (
-            <div
-              key={alert.id}
-              className={`flex items-start gap-2 rounded-md border px-3 py-2 text-xs ${cfg.classes}`}
-            >
-              <Icon className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-              <span>{sanitizeText(alert.message)}</span>
-            </div>
-          );
-        })
+            return (
+              <li
+                key={alert.id}
+                className={`flex items-start gap-2 rounded-md border px-3 py-2 text-xs ${cfg.classes}`}
+                role="alert"
+              >
+                <Icon className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+                <span>{sanitizeText(alert.message)}</span>
+              </li>
+            );
+          })}
+        </ul>
       )}
-    </div>
+    </section>
   );
 }
