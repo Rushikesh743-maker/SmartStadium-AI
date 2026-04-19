@@ -4,13 +4,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-provider";
-import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => {
-
+export default function App() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
@@ -27,6 +26,4 @@ const App = () => {
       </QueryClientProvider>
     </ThemeProvider>
   );
-};
-
-export default App;
+}
