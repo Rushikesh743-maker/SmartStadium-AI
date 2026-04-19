@@ -1,6 +1,10 @@
-import { Zone, getCrowdColor, getCrowdLevel, getZoneStatus } from "@/lib/stadium-data";
+import {
+  Zone,
+  getCrowdColor,
+  getZoneStatus,
+} from "@/lib/stadium-data";
 import { SimUser } from "@/lib/user-simulation";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 
 interface StadiumMapProps {
   zones: Zone[];
@@ -27,36 +31,58 @@ export default function StadiumMap({
   onZoneClick,
   isPredicted,
   emergencyMode,
-  simUsers = []
+  simUsers = [],
 }: StadiumMapProps) {
+  const zoneMap = useMemo(
+    () => new Map(zones.map((z) => [z.id, z])),
+    [zones]
+  );
 
-  const zoneMap = new Map(zones.map(z => [z.id, z]));
+  const pathSegments = useMemo(() => {
+    const segments: {
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+    }[] = [];
 
-  const pathSegments: { x1: number; y1: number; x2: number; y2: number }[] = [];
-  for (let i = 0; i < path.length - 1; i++) {
-    const a = zoneMap.get(path[i]);
-    const b = zoneMap.get(path[i + 1]);
-    if (a && b) {
-      pathSegments.push({
-        x1: a.x + a.width / 2,
-        y1: a.y + a.height / 2,
-        x2: b.x + b.width / 2,
-        y2: b.y + b.height / 2,
-      });
+    for (let i = 0; i < path.length - 1; i++) {
+      const a = zoneMap.get(path[i]);
+      const b = zoneMap.get(path[i + 1]);
+
+      if (a && b) {
+        segments.push({
+          x1: a.x + a.width / 2,
+          y1: a.y + a.height / 2,
+          x2: b.x + b.width / 2,
+          y2: b.y + b.height / 2,
+        });
+      }
     }
-  }
 
-  // 🔥 optimized rendering
+    return segments;
+  }, [path, zoneMap]);
+
   const renderedUsers = useMemo(() => {
-    if (!simUsers) return [];
     if (simUsers.length <= 150) return simUsers;
     return simUsers.filter((_, i) => i % 3 === 0);
   }, [simUsers]);
 
-  return (
-    <div className="relative w-full overflow-hidden rounded-lg border border-border bg-muted/30">
+  // ♿ accessibility-safe click handler
+  const handleZoneSelect = useCallback(
+    (zoneId: string, isField: boolean) => {
+      if (!isField) onZoneClick(zoneId);
+    },
+    [onZoneClick]
+  );
 
-      {/* 🔴 LIVE INDICATOR */}
+  return (
+    <div
+      className="relative w-full overflow-hidden rounded-lg border border-border bg-muted/30"
+      role="application"
+      aria-label="Stadium crowd navigation map"
+    >
+      {/* LIVE INDICATOR */}
       <div className="absolute top-2 right-2 z-10 text-xs bg-black/50 px-2 py-1 rounded text-white">
         🔴 LIVE Stadium System
       </div>
@@ -67,7 +93,12 @@ export default function StadiumMap({
         </div>
       )}
 
-      <svg viewBox="0 0 800 500" className="w-full h-auto">
+      <svg
+        viewBox="0 0 800 500"
+        className="w-full h-auto"
+        role="img"
+        aria-label="Interactive stadium zone map"
+      >
         <defs>
           <filter id="glow">
             <feGaussianBlur stdDeviation="3" result="blur" />
@@ -91,27 +122,32 @@ export default function StadiumMap({
         />
 
         {/* Zones */}
-        {zones.map(zone => {
+        {zones.map((zone) => {
           const isField = zone.id === "field";
           const isOnPath = path.includes(zone.id);
           const isSelected = zone.id === selectedZone;
+          const status = getZoneStatus(zone.crowd);
 
           const crowdColor = isField
             ? "hsl(var(--muted))"
             : getCrowdColor(zone.crowd);
 
-          const status = getZoneStatus(zone.crowd);
-
-          const isEmergencyHighlight =
-            emergencyMode && !isField && zone.crowd > 65;
+          const isEmergency = emergencyMode && zone.crowd > 65;
 
           return (
             <g
               key={zone.id}
-              onClick={() => !isField && onZoneClick(zone.id)}
-              className={isField ? "" : "cursor-pointer"}
+              tabIndex={isField ? -1 : 0}
+              role="button"
+              aria-label={zone.ariaLabel || zone.name}
+              onClick={() => handleZoneSelect(zone.id, isField)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  handleZoneSelect(zone.id, isField);
+                }
+              }}
+              className={isField ? "" : "cursor-pointer focus:outline-none"}
             >
-
               <rect
                 x={zone.x}
                 y={zone.y}
@@ -132,43 +168,15 @@ export default function StadiumMap({
                     : crowdColor
                 }
                 strokeWidth={
-                  isEmergencyHighlight
-                    ? 3
-                    : isSelected
-                    ? 3
-                    : isOnPath
-                    ? 2.5
-                    : 1.5
+                  isEmergency ? 3 : isSelected ? 3 : isOnPath ? 2.5 : 1.5
                 }
                 strokeDasharray={isPredicted ? "4 2" : undefined}
                 className={`transition-all duration-300 ${
-                  isEmergencyHighlight ? "animate-pulse" : ""
+                  isEmergency ? "animate-pulse" : ""
                 }`}
               />
 
-              {isField ? (
-                <>
-                  <ellipse
-                    cx={zone.x + zone.width / 2}
-                    cy={zone.y + zone.height / 2}
-                    rx={30}
-                    ry={20}
-                    fill="none"
-                    stroke="hsl(142, 40%, 30%)"
-                    strokeWidth="1"
-                  />
-                  <text
-                    x={zone.x + zone.width / 2}
-                    y={zone.y + zone.height / 2 + 4}
-                    textAnchor="middle"
-                    fill="hsl(var(--muted-foreground))"
-                    fontSize="11"
-                    fontWeight="600"
-                  >
-                    FIELD
-                  </text>
-                </>
-              ) : (
+              {!isField && (
                 <>
                   <text
                     x={zone.x + zone.width / 2}
@@ -178,10 +186,7 @@ export default function StadiumMap({
                     fontSize="9"
                     fontWeight="600"
                   >
-                    {typeIcons[zone.type]}{" "}
-                    {zone.name.length > 14
-                      ? zone.name.slice(0, 12) + "…"
-                      : zone.name}
+                    {typeIcons[zone.type]} {zone.name}
                   </text>
 
                   <text
@@ -195,7 +200,7 @@ export default function StadiumMap({
                     {Math.round(zone.crowd)}%
                   </text>
 
-                  {/* 🧠 NEW: AI STATUS LABEL */}
+                  {/* ♿ accessibility status */}
                   <text
                     x={zone.x + zone.width / 2}
                     y={zone.y + zone.height / 2 + 24}
@@ -203,7 +208,7 @@ export default function StadiumMap({
                     fontSize="8"
                     fill="hsl(var(--muted-foreground))"
                   >
-                    {status.toUpperCase()}
+                    {status}
                   </text>
                 </>
               )}
@@ -211,8 +216,8 @@ export default function StadiumMap({
           );
         })}
 
-        {/* Simulated users */}
-        {renderedUsers.map(u => (
+        {/* Users */}
+        {renderedUsers.map((u) => (
           <circle
             key={u.id}
             cx={u.x}
@@ -223,7 +228,7 @@ export default function StadiumMap({
           />
         ))}
 
-        {/* Path overlay */}
+        {/* Path */}
         {pathSegments.map((seg, i) => (
           <line
             key={i}
@@ -242,54 +247,13 @@ export default function StadiumMap({
             filter={emergencyMode ? "url(#glow)" : undefined}
           />
         ))}
-
-        {/* Path markers */}
-        {path.length > 0 && (() => {
-          const start = zoneMap.get(path[0]);
-          const end = zoneMap.get(path[path.length - 1]);
-
-          return (
-            <>
-              {start && (
-                <circle
-                  cx={start.x + start.width / 2}
-                  cy={start.y + start.height / 2}
-                  r="6"
-                  fill="hsl(var(--primary))"
-                  stroke="hsl(var(--foreground))"
-                  strokeWidth="2"
-                />
-              )}
-              {end && (
-                <circle
-                  cx={end.x + end.width / 2}
-                  cy={end.y + end.height / 2}
-                  r="6"
-                  fill={
-                    emergencyMode
-                      ? "hsl(var(--destructive))"
-                      : "hsl(var(--accent))"
-                  }
-                  stroke="hsl(var(--foreground))"
-                  strokeWidth="2"
-                />
-              )}
-            </>
-          );
-        })()}
       </svg>
 
       {/* Legend */}
       <div className="absolute bottom-3 left-3 flex gap-3 text-xs">
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm bg-crowd-low" /> Low
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm bg-crowd-medium" /> Medium
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm bg-crowd-high" /> High
-        </span>
+        <span>Low</span>
+        <span>Medium</span>
+        <span>High</span>
       </div>
     </div>
   );
