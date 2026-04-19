@@ -5,7 +5,7 @@ An AI-powered real-time stadium management system that simulates crowd movement,
 ---
 
 ## 🚀 Live Demo
-https://relieflink-sigma.vercel.app/
+smart-stadium-ai-psi.vercel.app
 
 ---
 
