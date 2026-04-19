@@ -6,6 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-provider";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import { useEffect } from "react";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const queryClient = new QueryClient();
 
