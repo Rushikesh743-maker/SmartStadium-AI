@@ -11,8 +11,11 @@ export interface Zone {
   crowd: number;
   connections: string[];
 
-  // NEW (safe addition for system upgrade)
+  // system intelligence
   status?: "safe" | "warning" | "critical";
+
+  // ♿ accessibility improvement
+  ariaLabel?: string;
 }
 
 export interface FoodStall {
@@ -51,9 +54,10 @@ export function getCrowdColor(value: number): string {
   return "hsl(0, 72%, 51%)";
 }
 
-//
-// 🔥 NEW SYSTEM INTELLIGENCE LAYER
-//
+// -----------------------------
+// INTELLIGENCE LAYER
+// -----------------------------
+
 export function getZoneStatus(crowd: number) {
   if (crowd > 80) return "critical";
   if (crowd > 60) return "warning";
@@ -67,46 +71,51 @@ export function getAlertPriority(crowd: number) {
   return 0;
 }
 
-//
-// ZONE DATA
-//
+// -----------------------------
+// ZONES
+// -----------------------------
+
 const initialZones: Zone[] = [
-  { id: "gate-1", name: "Gate 1 (North)", type: "gate", x: 350, y: 20, width: 100, height: 40, crowd: 30, connections: ["corridor-n"] },
-  { id: "gate-2", name: "Gate 2 (East)", type: "gate", x: 680, y: 220, width: 40, height: 100, crowd: 55, connections: ["corridor-e"] },
-  { id: "gate-3", name: "Gate 3 (South)", type: "gate", x: 350, y: 440, width: 100, height: 40, crowd: 80, connections: ["corridor-s"] },
-  { id: "gate-4", name: "Gate 4 (West)", type: "gate", x: 80, y: 220, width: 40, height: 100, crowd: 25, connections: ["corridor-w"] },
+  { id: "gate-1", name: "Gate 1 (North)", ariaLabel: "North Entry Gate 1", type: "gate", x: 350, y: 20, width: 100, height: 40, crowd: 30, connections: ["corridor-n"] },
+  { id: "gate-2", name: "Gate 2 (East)", ariaLabel: "East Entry Gate 2", type: "gate", x: 680, y: 220, width: 40, height: 100, crowd: 55, connections: ["corridor-e"] },
+  { id: "gate-3", name: "Gate 3 (South)", ariaLabel: "South Entry Gate 3", type: "gate", x: 350, y: 440, width: 100, height: 40, crowd: 80, connections: ["corridor-s"] },
+  { id: "gate-4", name: "Gate 4 (West)", ariaLabel: "West Entry Gate 4", type: "gate", x: 80, y: 220, width: 40, height: 100, crowd: 25, connections: ["corridor-w"] },
 
-  { id: "corridor-n", name: "North Corridor", type: "corridor", x: 250, y: 70, width: 300, height: 40, crowd: 35, connections: ["gate-1", "seat-nw", "seat-ne", "food-1"] },
-  { id: "corridor-e", name: "East Corridor", type: "corridor", x: 620, y: 150, width: 40, height: 200, crowd: 45, connections: ["gate-2", "seat-ne", "seat-se", "food-2"] },
-  { id: "corridor-s", name: "South Corridor", type: "corridor", x: 250, y: 390, width: 300, height: 40, crowd: 60, connections: ["gate-3", "seat-sw", "seat-se", "food-3"] },
-  { id: "corridor-w", name: "West Corridor", type: "corridor", x: 140, y: 150, width: 40, height: 200, crowd: 20, connections: ["gate-4", "seat-nw", "seat-sw", "wash-1"] },
+  { id: "corridor-n", name: "North Corridor", ariaLabel: "North Corridor", type: "corridor", x: 250, y: 70, width: 300, height: 40, crowd: 35, connections: ["gate-1", "seat-nw", "seat-ne", "food-1"] },
+  { id: "corridor-e", name: "East Corridor", ariaLabel: "East Corridor", type: "corridor", x: 620, y: 150, width: 40, height: 200, crowd: 45, connections: ["gate-2", "seat-ne", "seat-se", "food-2"] },
+  { id: "corridor-s", name: "South Corridor", ariaLabel: "South Corridor", type: "corridor", x: 250, y: 390, width: 300, height: 40, crowd: 60, connections: ["gate-3", "seat-sw", "seat-se", "food-3"] },
+  { id: "corridor-w", name: "West Corridor", ariaLabel: "West Corridor", type: "corridor", x: 140, y: 150, width: 40, height: 200, crowd: 20, connections: ["gate-4", "seat-nw", "seat-sw", "wash-1"] },
 
-  { id: "seat-nw", name: "Section A (NW)", type: "seating", x: 180, y: 110, width: 140, height: 120, crowd: 50, connections: ["corridor-n", "corridor-w", "field"] },
-  { id: "seat-ne", name: "Section B (NE)", type: "seating", x: 480, y: 110, width: 140, height: 120, crowd: 65, connections: ["corridor-n", "corridor-e", "field"] },
-  { id: "seat-sw", name: "Section C (SW)", type: "seating", x: 180, y: 270, width: 140, height: 120, crowd: 40, connections: ["corridor-s", "corridor-w", "field"] },
-  { id: "seat-se", name: "Section D (SE)", type: "seating", x: 480, y: 270, width: 140, height: 120, crowd: 70, connections: ["corridor-s", "corridor-e", "field"] },
+  { id: "seat-nw", name: "Section A (NW)", ariaLabel: "North West Seating Section A", type: "seating", x: 180, y: 110, width: 140, height: 120, crowd: 50, connections: ["corridor-n", "corridor-w", "field"] },
+  { id: "seat-ne", name: "Section B (NE)", ariaLabel: "North East Seating Section B", type: "seating", x: 480, y: 110, width: 140, height: 120, crowd: 65, connections: ["corridor-n", "corridor-e", "field"] },
+  { id: "seat-sw", name: "Section C (SW)", ariaLabel: "South West Seating Section C", type: "seating", x: 180, y: 270, width: 140, height: 120, crowd: 40, connections: ["corridor-s", "corridor-w", "field"] },
+  { id: "seat-se", name: "Section D (SE)", ariaLabel: "South East Seating Section D", type: "seating", x: 480, y: 270, width: 140, height: 120, crowd: 70, connections: ["corridor-s", "corridor-e", "field"] },
 
-  { id: "field", name: "Playing Field", type: "corridor", x: 320, y: 160, width: 160, height: 180, crowd: 0, connections: ["seat-nw", "seat-ne", "seat-sw", "seat-se"] },
+  { id: "field", name: "Playing Field", ariaLabel: "Main Playing Field", type: "corridor", x: 320, y: 160, width: 160, height: 180, crowd: 0, connections: ["seat-nw", "seat-ne", "seat-sw", "seat-se"] },
 
-  { id: "food-1", name: "Food Court North", type: "food", x: 300, y: 115, width: 60, height: 30, crowd: 55, connections: ["corridor-n"] },
-  { id: "food-2", name: "Food Court East", type: "food", x: 625, y: 260, width: 30, height: 60, crowd: 70, connections: ["corridor-e"] },
-  { id: "food-3", name: "Food Court South", type: "food", x: 440, y: 355, width: 60, height: 30, crowd: 40, connections: ["corridor-s"] },
+  { id: "food-1", name: "Food Court North", ariaLabel: "North Food Court", type: "food", x: 300, y: 115, width: 60, height: 30, crowd: 55, connections: ["corridor-n"] },
+  { id: "food-2", name: "Food Court East", ariaLabel: "East Food Court", type: "food", x: 625, y: 260, width: 30, height: 60, crowd: 70, connections: ["corridor-e"] },
+  { id: "food-3", name: "Food Court South", ariaLabel: "South Food Court", type: "food", x: 440, y: 355, width: 60, height: 30, crowd: 40, connections: ["corridor-s"] },
 
-  { id: "wash-1", name: "Washrooms West", type: "washroom", x: 145, y: 260, width: 30, height: 50, crowd: 35, connections: ["corridor-w"] },
+  { id: "wash-1", name: "Washrooms West", ariaLabel: "West Washrooms", type: "washroom", x: 145, y: 260, width: 30, height: 50, crowd: 35, connections: ["corridor-w"] },
 ];
 
 export function getInitialZones(): Zone[] {
   return JSON.parse(JSON.stringify(initialZones));
 }
 
-//
-// 🔥 UPGRADED CROWD SIMULATION (with system intelligence)
-//
-export function simulateCrowdUpdate(zones: Zone[]): Zone[] {
+// -----------------------------
+// TESTABLE CROWD SIMULATION
+// -----------------------------
+
+export function simulateCrowdUpdate(
+  zones: Zone[],
+  randomFn: () => number = Math.random
+): Zone[] {
   return zones.map(z => {
     if (z.id === "field") return z;
 
-    const delta = (Math.random() - 0.5) * 15;
+    const delta = (randomFn() - 0.5) * 15;
     const newCrowd = Math.max(5, Math.min(95, z.crowd + delta));
 
     return {
@@ -116,6 +125,22 @@ export function simulateCrowdUpdate(zones: Zone[]): Zone[] {
     };
   });
 }
+
+// deterministic version for tests
+export function simulateCrowdUpdateMock(zones: Zone[], seed = 1): Zone[] {
+  let x = seed;
+
+  const fakeRandom = () => {
+    x = (x * 9301 + 49297) % 233280;
+    return x / 233280;
+  };
+
+  return simulateCrowdUpdate(zones, fakeRandom);
+}
+
+// -----------------------------
+// FOOD STALLS
+// -----------------------------
 
 export const foodStalls: FoodStall[] = [
   {
@@ -156,9 +181,10 @@ export const foodStalls: FoodStall[] = [
   },
 ];
 
-//
-// 🔥 UPGRADED ALERT SYSTEM (priority-based)
-//
+// -----------------------------
+// ALERT SYSTEM
+// -----------------------------
+
 export function generateAlerts(zones: Zone[]): Alert[] {
   const alerts: Alert[] = [];
   const now = Date.now();
@@ -195,16 +221,18 @@ export function generateAlerts(zones: Zone[]): Alert[] {
   return alerts.slice(0, 5);
 }
 
-//
-// 🔥 UPGRADED PATHFINDING (crowd-aware routing)
-//
+// -----------------------------
+// PATHFINDING (CROWD AWARE)
+// -----------------------------
+
 export function findPath(
   zones: Zone[],
   sourceId: string,
   destId: string,
   avoidCrowds: boolean
 ): string[] {
-  const zoneMap = new Map(zones.map(z => [z.id, z]));
+  const zoneMap = new Map(zones.filter(Boolean).map(z => [z.id, z]));
+
   const dist = new Map<string, number>();
   const prev = new Map<string, string | null>();
   const visited = new Set<string>();
@@ -231,7 +259,8 @@ export function findPath(
 
     visited.add(u);
 
-    const zone = zoneMap.get(u)!;
+    const zone = zoneMap.get(u);
+    if (!zone) continue;
 
     for (const nId of zone.connections) {
       if (visited.has(nId)) continue;
@@ -243,7 +272,6 @@ export function findPath(
       const safetyPenalty = avoidCrowds ? crowdPenalty * 2 : crowdPenalty;
 
       const weight = 1 + safetyPenalty;
-
       const alt = minD + weight;
 
       if (alt < (dist.get(nId) ?? Infinity)) {
@@ -264,20 +292,16 @@ export function findPath(
   return path[0] === sourceId ? path : [];
 }
 
-//
-// 🔥 SYSTEM HEALTH (BONUS SCORE BOOST)
-//
+// -----------------------------
+// SYSTEM HEALTH (BONUS)
+// -----------------------------
+
 export function getSystemHealth(zones: Zone[]) {
   const avg =
     zones.reduce((sum, z) => sum + z.crowd, 0) / zones.length;
 
   return {
     avgCrowd: avg,
-    status:
-      avg > 70
-        ? "overloaded"
-        : avg > 40
-        ? "moderate"
-        : "optimal",
+    status: avg > 70 ? "overloaded" : avg > 40 ? "moderate" : "optimal",
   };
 }
